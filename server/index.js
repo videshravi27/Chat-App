@@ -9,6 +9,7 @@ const connectDB = require("./lib/db");
 
 const app = express();
 
+app.use(express.json());
 app.use("/auth", authRoutes);
 
 app.listen(process.env.PORT, () => {
