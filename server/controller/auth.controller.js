@@ -46,6 +46,7 @@ const signup = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
 const login = async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -79,6 +80,7 @@ const login = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
 const logout = async (req, res) => {
   try {
     res.cookie("jwt", "", { maxAge: 0 });
@@ -88,7 +90,43 @@ const logout = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
 const updateProfile = async (req, res) => {
+  try {
+    const userid = req.user._id;
+
+    const { fullName, email, password } = req.body;
+    if (!fullName && !email && !password) {
+      return res
+        .status(400)
+        .json({ message: "At least one field must be provided" });
+    }
+
+    let updateData = {};
+    if (fullName) updateData.fullName = fullName;
+    if (email) updateData.email = email;
+
+    if (password) {
+      const salt = await bcrypt.genSalt(10);
+      updateData.password = await bcrypt.hash(password, salt);
+
+      await User.findByIdAndUpdate(userid, {
+        password: updateData.password,
+      });
+      return res.status(200).json({ message: "Password updated successfully" });
+    }
+
+    const user = await User.findByIdAndUpdate(userid, updateData, {
+      new: true,
+    }).select("-password");
+    res.status(200).json(user);
+  } catch (error) {
+    console.log("Error", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+const updateProfilePic = async (req, res) => {
   try {
     const { profilePic } = req.body;
     const userid = req.user._id;
@@ -98,20 +136,25 @@ const updateProfile = async (req, res) => {
     }
 
     const uploadResponse = await cloudinary.uploader.upload(profilePic);
-    const uploadUser = await User.findByIdAndUpdate(userid, { profilePic: uploadResponse.secure_url }, { new: true });
-    res.status(200).json({uploadUser});
+    const uploadUser = await User.findByIdAndUpdate(
+      userid,
+      { profilePic: uploadResponse.secure_url },
+      { new: true }
+    );
+    res.status(200).json({ uploadUser });
   } catch (error) {
-    console.log("Error", error);
-    return res.status(500).json({ message: "Internal server error"})
-  }
-};
-const checkAuth = async (req, res) => {
-  try{
-    res.status(200).json(req.user);
-  }catch(error){
     console.log("Error", error);
     return res.status(500).json({ message: "Internal server error" });
   }
-}
+};
 
-module.exports = { signup, login, logout, updateProfile, checkAuth };
+const checkAuth = async (req, res) => {
+  try {
+    res.status(200).json(req.user);
+  } catch (error) {
+    console.log("Error", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+module.exports = { signup, login, logout, updateProfile, updateProfilePic, checkAuth };
