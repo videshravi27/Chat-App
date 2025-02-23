@@ -91,65 +91,71 @@ const logout = async (req, res) => {
   }
 };
 
-const updateProfile = async (req, res) => {
-  try {
-    const userid = req.user._id;
+// const updateProfile = async (req, res) => {
+//   try {
+//     const userid = req.user._id;
 
-    const { fullName, email, password } = req.body;
-    if (!fullName && !email && !password) {
-      return res
-        .status(400)
-        .json({ message: "At least one field must be provided" });
-    }
+//     const { fullName, email, password } = req.body;
+//     if (!fullName && !email && !password) {
+//       return res
+//         .status(400)
+//         .json({ message: "At least one field must be provided" });
+//     }
 
-    let updateData = {};
-    if (fullName) updateData.fullName = fullName;
-    if (email) updateData.email = email;
+//     let updateData = {};
+//     if (fullName) updateData.fullName = fullName;
+//     if (email) updateData.email = email;
 
-    if (password) {
-      const salt = await bcrypt.genSalt(10);
-      updateData.password = await bcrypt.hash(password, salt);
+//     if (password) {
+//       const salt = await bcrypt.genSalt(10);
+//       updateData.password = await bcrypt.hash(password, salt);
 
-      await User.findByIdAndUpdate(userid, {
-        password: updateData.password,
-      });
-      return res.status(200).json({ message: "Password updated successfully" });
-    }
+//       await User.findByIdAndUpdate(userid, {
+//         password: updateData.password,
+//       });
+//       return res.status(200).json({ message: "Password updated successfully" });
+//     }
 
-    const user = await User.findByIdAndUpdate(userid, updateData, {
-      new: true,
-    }).select("-password");
-    res.status(200).json(user);
-  } catch (error) {
-    console.log("Error", error);
-    return res.status(500).json({ message: "Internal server error" });
-  }
-};
+//     const user = await User.findByIdAndUpdate(userid, updateData, {
+//       new: true,
+//     }).select("-password");
+//     res.status(200).json(user);
+//   } catch (error) {
+//     console.log("Error", error);
+//     return res.status(500).json({ message: "Internal server error" });
+//   }
+// };
 
 const updateProfilePic = async (req, res) => {
   try {
     const { profilePic } = req.body;
-    const userid = req.user._id;
+    const userId = req.user._id;
 
     if (!profilePic) {
-      return res.status(400).json({ message: "Profile picture is required" });
+      return res.status(400).json({ message: "Profile pic is required" });
     }
 
     const uploadResponse = await cloudinary.uploader.upload(profilePic);
-    const uploadUser = await User.findByIdAndUpdate(
-      userid,
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
       { profilePic: uploadResponse.secure_url },
       { new: true }
     );
-    res.status(200).json({ uploadUser });
+
+    res.status(200).json(updatedUser);
   } catch (error) {
-    console.log("Error", error);
-    return res.status(500).json({ message: "Internal server error" });
+    console.log("error in update profile:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
 const checkAuth = async (req, res) => {
   try {
+    // console.log("req.user:", req.user); 
+    // if (!req.user) {
+    //   return res.status(401).json({ message: "Unauthorized" });
+    // }
+
     res.status(200).json(req.user);
   } catch (error) {
     console.log("Error", error);
@@ -157,4 +163,4 @@ const checkAuth = async (req, res) => {
   }
 };
 
-module.exports = { signup, login, logout, updateProfile, updateProfilePic, checkAuth };
+module.exports = { signup, login, logout, updateProfilePic, checkAuth };
