@@ -8,9 +8,9 @@ const authRoutes = require("./routes/auth.route");
 const messageRoutes = require("./routes/message.route");
 const connectDB = require("./lib/db");
 
-const app = express();
+const { app, server }= require("./lib/socket");
 
-app.use(express.json({ limit: "50mb" }));
+app.use(express.json());
 app.use(cookieParser());
 app.use(
   cors({
@@ -22,7 +22,7 @@ app.use(
 app.use("/auth", authRoutes);
 app.use("/message", messageRoutes);
 
-app.listen(process.env.PORT, () => {
+server.listen(process.env.PORT, () => {
   connectDB();
   console.log("Server is running on port " + process.env.PORT);
 });
