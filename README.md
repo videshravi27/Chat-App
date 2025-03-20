@@ -67,4 +67,4 @@ The Chat Application is a real-time messaging platform built using the MERN (Mon
 - AI-based chat suggestions.
 
 ## Contact
-For queries, reach out at [your-videshravi27@gmail.com](mailto:videshravi27.com)
+For queries, reach out at [videshravi27@gmail.com](mailto:videshravi27.com)
