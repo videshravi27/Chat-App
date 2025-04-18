@@ -14,14 +14,14 @@ import { useEffect } from "react";
 
 import { Loader } from "lucide-react";
 
-export default function App() {
+const App = () => {
   const { checkAuth, authUser, isCheckingAuth, onlineUsers } = useAuthStore();
   console.log({ onlineUsers })
 
   useEffect(() => {
     checkAuth()
   }, [checkAuth])
-  // console.log({authUser})
+  console.log({authUser})
 
   if (isCheckingAuth && !authUser) {
     return (
@@ -47,3 +47,4 @@ export default function App() {
     </div>
   )
 }
+export default App

@@ -2,6 +2,10 @@ const { generateToken } = require("../lib/utils");
 const User = require("../models/user.model");
 const bcrypt = require("bcrypt");
 const cloudinary = require("../lib/cloudinary");
+const multer = require("multer");
+
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
 const signup = async (req, res) => {
   const { email, password, fullName } = req.body;
@@ -128,14 +132,23 @@ const logout = async (req, res) => {
 
 const updateProfilePic = async (req, res) => {
   try {
-    const { profilePic } = req.body;
     const userId = req.user._id;
+    console.log("Request File:", req.file);
+    console.log("Request Body:", req.body);
 
-    if (!profilePic) {
+    if (!req.file) {
       return res.status(400).json({ message: "Profile pic is required" });
     }
 
-    const uploadResponse = await cloudinary.uploader.upload(profilePic);
+    const fileBuffer = req.file.buffer.toString("base64");
+
+    const uploadResponse = await cloudinary.uploader.upload(
+      `data:image/png;base64,${fileBuffer}`,
+      {
+        folder: "profile_pictures", 
+      }
+    );
+
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       { profilePic: uploadResponse.secure_url },
@@ -151,7 +164,7 @@ const updateProfilePic = async (req, res) => {
 
 const checkAuth = async (req, res) => {
   try {
-    // console.log("req.user:", req.user); 
+    // console.log("req.user:", req.user);
     // if (!req.user) {
     //   return res.status(401).json({ message: "Unauthorized" });
     // }
@@ -163,4 +176,4 @@ const checkAuth = async (req, res) => {
   }
 };
 
-module.exports = { signup, login, logout, updateProfilePic, checkAuth };
+module.exports = { signup, login, logout, updateProfilePic, upload, checkAuth };

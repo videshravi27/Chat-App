@@ -10,14 +10,16 @@ const ProfilePage = () => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const reader = new FileReader();
+    console.log("Uploading file:", file);
+    const formData = new FormData();
+    formData.append("profilePic", file);
 
-    reader.readAsDataURL(file);
+    console.log("FormData Entries:", [...formData.entries()]); 
 
-    reader.onload = async () => {
-      const base64Image = reader.result;
-      setSelectedImg(base64Image);
-      await updateProfile({ profilePic: base64Image });
+    try {
+      await updateProfile(formData);
+    } catch (error) {
+      console.error("Error uploading file:", error);
     };
   };
 

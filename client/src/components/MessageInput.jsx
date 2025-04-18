@@ -1,51 +1,57 @@
-import React, { useRef, useState } from 'react'
+import { useRef, useState } from "react";
+import { useChatStore } from "../store/useChatStore";
 import { Image, Send, X } from "lucide-react";
 import toast from "react-hot-toast";
-import { useChatStore } from '../store/useChatStore';
-
 
 const MessageInput = () => {
-  const [text, setText] = useState("");
+  const [message, setMessage] = useState("");
   const [imagePreview, setImagePreview] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
   const fileInputRef = useRef(null);
   const { sendMessage } = useChatStore();
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
+    if (!file) return;
     if (!file.type.startsWith("image/")) {
-      toast.error("Please select an image")
+      toast.error("Please select an image file");
       return;
     }
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setImagePreview(reader.result);
-    }
-    reader.readAsDataURL(file);
-  }
+    setSelectedFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
 
   const removeImage = () => {
     setImagePreview(null);
+    setSelectedFile(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
-  }
+  };
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!text.trim() && !imagePreview) return;
+    if (!message.trim() && !selectedFile) return;
+
+    const formData = new FormData();
+    formData.append("message", message.trim());
+    if (selectedFile) {
+      formData.append("image", selectedFile);
+    }
+
+    for (let [key, value] of formData.entries()) {
+      console.log(`${key}:`, value);
+    }
 
     try {
-      await sendMessage({
-        text: text.trim(),
-        image: imagePreview,
-      });
+      console.log("Sending message:", formData);
+      await sendMessage(formData);
 
-      setText("");
-      setImagePreview(null);
-      if (fileInputRef.current) fileInputRef.current.value = "";
+      setMessage("");
+      removeImage();
     } catch (error) {
       console.error("Failed to send message:", error);
     }
-  }
+  };
 
   return (
     <div className="p-4 w-full">
@@ -75,8 +81,8 @@ const MessageInput = () => {
             type="text"
             className="w-full input input-bordered rounded-lg input-sm sm:input-md"
             placeholder="Type a message..."
-            value={text}
-            onChange={(e) => setText(e.target.value)}
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
           />
           <input
             type="file"
@@ -88,23 +94,23 @@ const MessageInput = () => {
 
           <button
             type="button"
-            className={`hidden sm:flex btn btn-circle
-                     ${imagePreview ? "text-emerald-500" : "text-zinc-400"}`}
+            className={`btn btn-circle ${imagePreview ? "text-emerald-500" : "text-zinc-400"}`}
             onClick={() => fileInputRef.current?.click()}
           >
-            <Image size={20} />
+            <Image size={22} />
           </button>
         </div>
+
         <button
           type="submit"
-          className="btn btn-sm btn-circle"
-          disabled={!text.trim() && !imagePreview}
+          className="btn btn-circle"
+          disabled={!message.trim() && !imagePreview}
         >
           <Send size={22} />
         </button>
       </form>
-    </div>
-  )
-}
 
+    </div>
+  );
+};
 export default MessageInput;

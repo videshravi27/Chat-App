@@ -1,7 +1,6 @@
 require("dotenv").config();
 const cookieParser = require("cookie-parser");
 const express = require("express");
-const mongoose = require("mongoose");
 const cors = require("cors");
 
 const authRoutes = require("./routes/auth.route");
@@ -10,14 +9,18 @@ const connectDB = require("./lib/db");
 
 const { app, server }= require("./lib/socket");
 
-app.use(express.json());
+app.use(express.json({ limit: "50mb" })); 
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
 app.use(cookieParser());
+
 app.use(
   cors({
     origin: "http://localhost:5173",
     credentials: true,
   })
 );
+
+app.use("/uploads/chat_images", express.static("uploads/chat"));
 
 app.use("/auth", authRoutes);
 app.use("/message", messageRoutes);

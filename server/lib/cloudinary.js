@@ -1,7 +1,7 @@
 const { v2: cloudinary } = require("cloudinary");
 const dotenv = require("dotenv");
 
-dotenv.config({ path: "D:Mernchatserver.env" });
+dotenv.config();
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,

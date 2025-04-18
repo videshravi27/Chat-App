@@ -18,6 +18,10 @@ export const useAuthStore = create((set, get) => ({
     try {
       const res = await axiosInstance.get("/auth/check");
       set({ authUser: res.data });
+
+      if (res.data) {
+        get().connectSocket();
+      }
     } catch (error) {
       console.log("Error in checkAuth: ", error);
       set({ authUser: null });
@@ -34,9 +38,9 @@ export const useAuthStore = create((set, get) => ({
       console.log("User Data:", res.data);
       toast.success("Account created successfully");
 
-      get.connectSocket();
+      get().connectSocket();
     } catch (error) {
-      toast.error(error.res.data.message);
+      toast.error(error.response?.data?.message || "Signup failed");
     } finally {
       set({ isSigningUp: false });
     }
@@ -51,7 +55,9 @@ export const useAuthStore = create((set, get) => ({
 
       get().connectSocket();
     } catch (error) {
-      const errorMessage = error.response?.data?.message || "Something went wrong. Please try again.";
+      const errorMessage =
+        error.response?.data?.message ||
+        "Something went wrong. Please try again.";
       toast.error(errorMessage);
     } finally {
       set({ isLoggingIn: false });
@@ -66,19 +72,24 @@ export const useAuthStore = create((set, get) => ({
 
       get().disconnectSocket();
     } catch (error) {
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message || "Logout failed");
     }
   },
 
-  updateProfile: async (data) => {
+  updateProfile: async (file) => {
     set({ isUpdatingProfile: true });
     try {
-      const res = await axiosInstance.put("/auth/update-profilepic", data);
+      const formData = new FormData();
+      formData.append("profilePic", file);
+
+      const res = await axiosInstance.put("/auth/update-profilepic", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
       set({ authUser: res.data });
-      toast.success("Profile updated Successfully");
+      toast.success("Profile Pic updated Successfully");
     } catch (error) {
-      console.log(error);
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message || "Profile update failed");
     } finally {
       set({ isUpdatingProfile: false });
     }
@@ -86,15 +97,19 @@ export const useAuthStore = create((set, get) => ({
 
   connectSocket: () => {
     const { authUser } = get();
-    if (!authUser || get.socket?.conected) return;
+    if (!authUser || get().socket?.connected) return;
+
+    if (!authUser._id) {
+      console.error("Error: authUser._id is undefined");
+      return;
+    }
 
     const socket = io(BASE_URL, {
-      query: {
-        userId: authUser._id,
-      },
+      query: { userId: authUser._id },
     });
-    socket.connect();
 
+    socket.connect();
+    
     set({ socket: socket });
 
     socket.on("getOnlineUsers", (userIds) => {
