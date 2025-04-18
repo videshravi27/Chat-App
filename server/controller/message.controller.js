@@ -1,28 +1,15 @@
 const Message = require("../models/message.model");
 const User = require("../models/user.model");
 const { getReceiverSocketId, io } = require("../lib/socket");
-const { compressImage } = require("../lib/compressImage");
 const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
+const cloudinary = require("../lib/cloudinary");
+const streamifier = require("streamifier");
 
-// Configure Multer Storage
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadPath = path.join(__dirname, "../uploads/chat_images");
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath, { recursive: true });
-    }
-    cb(null, uploadPath);
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
-  },
-});
-
+// Use memory storage so files can be uploaded to Cloudinary directly
+const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-// Get users for sidebar (excluding the logged-in user)
+// Get users for sidebar (unchanged)
 const getUsersForSidebar = async (req, res) => {
   try {
     const loggedinUserid = req.user._id;
@@ -36,7 +23,7 @@ const getUsersForSidebar = async (req, res) => {
   }
 };
 
-// Get messages between two users
+// Get messages (unchanged)
 const getMessages = async (req, res) => {
   try {
     const { id: userToChatId } = req.params;
@@ -59,7 +46,7 @@ const getMessages = async (req, res) => {
   }
 };
 
-// Send a message with text or image
+// Send message
 const sendMessage = async (req, res) => {
   try {
     const { id: receiverid } = req.params;
@@ -71,30 +58,40 @@ const sendMessage = async (req, res) => {
       return res.status(400).json({ message: "Receiver ID is required" });
     }
 
-    // console.log("req.body:", req.body);
-
     if (!message?.trim() && !imageFile) {
       return res.status(400).json({ message: "Message or image is required" });
     }
 
     let imageUrl = null;
+
+    // Upload to Cloudinary if an image is present
     if (imageFile) {
+      const streamUpload = () => {
+        return new Promise((resolve, reject) => {
+          const stream = cloudinary.uploader.upload_stream(
+            {
+              folder: "chat_images",
+              resource_type: "image",
+            },
+            (error, result) => {
+              if (result) {
+                resolve(result.secure_url);
+              } else {
+                reject(error);
+              }
+            }
+          );
+
+          streamifier.createReadStream(imageFile.buffer).pipe(stream);
+        });
+      };
+
       try {
-        const compressedBuffer = await compressImage(
-          fs.readFileSync(imageFile.path)
-        );
-        fs.writeFileSync(imageFile.path, compressedBuffer);
-
-        imageUrl = `http://localhost:4000/uploads/chat/${imageFile.filename}`;
-        console.log("Uploaded Image URL:", imageUrl);
-      } catch (uploadError) {
-        console.error("Image Upload Exception:", uploadError);
-        return res.status(500).json({ message: "Error uploading image" });
+        imageUrl = await streamUpload();
+      } catch (err) {
+        console.error("Cloudinary Upload Error:", err);
+        return res.status(500).json({ message: "Invalid image file" });
       }
-    }
-
-    if (!message?.trim() && !imageUrl) {
-      return res.status(400).json({ message: "Cannot send empty messages" });
     }
 
     const newMessage = new Message({
@@ -113,9 +110,14 @@ const sendMessage = async (req, res) => {
 
     res.status(201).json(newMessage);
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Send Message Error:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
 
-module.exports = { getUsersForSidebar, getMessages, sendMessage };
+module.exports = {
+  getUsersForSidebar,
+  getMessages,
+  sendMessage,
+  upload,
+};
