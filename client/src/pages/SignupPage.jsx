@@ -17,11 +17,43 @@ const SignUpPage = () => {
   const { signup, isSigningUp } = useAuthStore();
 
   const validateForm = () => {
-    if (!formData.email.trim()) return toast.error("Email is required");
-    if (!/\S+@\S+\.\S+/.test(formData.email)) return toast.error("Invalid email format");
-    if (!formData.password) return toast.error("Password is required");
-    if (formData.password.length < 6) return toast.error("Password must be at least 6 characters");
-    if (!formData.fullName.trim()) return toast.error("Full name is required");
+    const allowedDomains = ["@gmail.com", "@hotmail.com", "@yahoo.com", "@sece.ac.in"];
+
+    if (!formData.email.trim()) {
+      toast.error("Email is required");
+      return false;
+    }
+
+    if (!formData.email.includes("@")) {
+      toast.error("Email must contain '@' symbol");
+      return false;
+    }
+
+    const emailDomain = formData.email.substring(formData.email.indexOf("@"));
+    if (!allowedDomains.includes(emailDomain)) {
+      toast.error("Email domain must be @gmail.com, @hotmail.com, @yahoo.com, or @sece.ac.in");
+      return false;
+    }
+
+    if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      toast.error("Invalid email format");
+      return false;
+    }
+
+    if (!formData.password) {
+      toast.error("Password is required");
+      return false;
+    }
+
+    if (formData.password.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return false;
+    }
+
+    if (!formData.fullName.trim()) {
+      toast.error("Full name is required");
+      return false;
+    }
 
     return true;
   };
@@ -29,10 +61,8 @@ const SignUpPage = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const success = validateForm();
-
-    if (success) signup(formData);
-    console.log("Form submitted: ", formData);
+    const isValid = validateForm();
+    if (isValid)  signup(formData);
   };
 
   return (
@@ -69,6 +99,7 @@ const SignUpPage = () => {
                   placeholder="John Doe"
                   value={formData.fullName}
                   onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                  required
                 />
               </div>
             </div>

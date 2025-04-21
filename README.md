@@ -32,27 +32,32 @@ The Chat Application is a real-time messaging platform built using the MERN (Mon
 
 2. Install dependencies:
    ```sh
-   npm install
    cd client && npm install
+
+   cd server && npm install
    ```
 
 3. Set up environment variables:
-   Create a `.env` file in the root and add:
+   Create a `.env` file in the server and add:
    ```env
    MONGO_URI=your_mongodb_connection_string
    JWT_SECRET=your_secret_key
    CLOUDINARY_URL=your_cloudinary_url
+   CLOUDINARY_API_KEY=your_cloudinary_api_key
+   CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+   FRONTEND_URL=your_frontend_url
    ```
 
 4. Start the backend server:
    ```sh
-   npm run server
+   cd server
+   npm start
    ```
 
 5. Start the frontend:
    ```sh
    cd client
-   npm start
+   npm run dev
    ```
 
 ## Usage

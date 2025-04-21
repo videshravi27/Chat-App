@@ -2,12 +2,14 @@ const { Server } = require("socket.io");
 const http = require("http");
 const express = require("express");
 
+require("dotenv").config();
+
 const app = express();
 const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: ["https://chat-app-ten-ecru.vercel.app"],
+    origin: process.env.FRONTEND_URL,
   },
 });
 
