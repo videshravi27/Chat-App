@@ -34,8 +34,8 @@ const ChatContainer = () => {
     }
   }, [messages]);
 
-  console.log("Messages:", messages);
-  console.log("isMessagesLoading:", isMessagesLoading);
+  // console.log("Messages:", messages);
+  // console.log("isMessagesLoading:", isMessagesLoading);
 
   if (isMessagesLoading) {
     return (

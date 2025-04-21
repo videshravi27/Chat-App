@@ -10,11 +10,11 @@ const ProfilePage = () => {
     const file = e.target.files[0];
     if (!file) return;
 
-    console.log("Uploading file:", file);
+    // console.log("Uploading file:", file);
     const formData = new FormData();
     formData.append("profilePic", file);
 
-    console.log("FormData Entries:", [...formData.entries()]); 
+    // console.log("FormData Entries:", [...formData.entries()]); 
 
     try {
       await updateProfile(formData);

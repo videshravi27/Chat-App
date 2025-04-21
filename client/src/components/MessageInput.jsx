@@ -38,12 +38,12 @@ const MessageInput = () => {
       formData.append("image", selectedFile);
     }
 
-    for (let [key, value] of formData.entries()) {
-      console.log(`${key}:`, value);
-    }
+    // for (let [key, value] of formData.entries()) {
+    //   console.log(`${key}:`, value);
+    // }
 
     try {
-      console.log("Sending message:", formData);
+      // console.log("Sending message:", formData);
       await sendMessage(formData);
 
       setMessage("");

@@ -28,7 +28,7 @@ export const useChatStore = create((set, get) => ({
     set({ isMessagesLoading: true });
     try {
       const res = await axiosInstance.get(`/message/${userId}`);
-      console.log("Fetched Messages:", res.data);
+      // console.log("Fetched Messages:", res.data);
       set({ messages: res.data });
     } catch (error) {
       toast(error.response?.data?.message || "Failed to load messages", {
@@ -46,8 +46,8 @@ export const useChatStore = create((set, get) => ({
       return;
     }
 
-    console.log("FormData Contents:");
-    messageData.forEach((value, key) => console.log(`${key}:`, value));
+    // console.log("FormData Contents:");
+    // messageData.forEach((value, key) => console.log(`${key}:`, value));
 
     if (!messageData.get("message")?.trim() && !messageData.get("image")) {
       toast.error("Cannot send an empty message");

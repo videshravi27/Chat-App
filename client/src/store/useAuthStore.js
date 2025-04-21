@@ -24,7 +24,7 @@ export const useAuthStore = create((set, get) => ({
         get().connectSocket();
       }
     } catch (error) {
-      console.log("Error in checkAuth: ", error);
+      // console.log("Error in checkAuth: ", error);
       set({ authUser: null });
     } finally {
       set({ isCheckingAuth: false });
@@ -36,7 +36,7 @@ export const useAuthStore = create((set, get) => ({
     try {
       const res = await axiosInstance.post("/auth/signup", formData);
       set({ authUser: res.data });
-      console.log("User Data:", res.data);
+      // console.log("User Data:", res.data);
       toast.success("Account created successfully");
 
       get().connectSocket();
