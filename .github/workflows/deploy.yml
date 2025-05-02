@@ -1,4 +1,4 @@
-name: Client CI/CD
+name: Vite Client CI/CD
 
 on:
   push:
@@ -24,7 +24,17 @@ jobs:
           node-version: '18'
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
+
+      - name: Build Vite app
+        run: npm run build
 
       - name: Run tests
         run: npm test || echo "No tests found"
+
+      # Optional: Upload build artifacts
+      - name: Upload production-ready build files
+        uses: actions/upload-artifact@v3
+        with:
+          name: vite-build
+          path: client/dist
